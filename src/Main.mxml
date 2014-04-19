@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:components="framework.components.*"
+			   minWidth="800" minHeight="600"
+			   creationComplete="application1_creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import framework.components.VideoPlayer;
+			import framework.event.VideoEvent;
+			import framework.loader.DomLoader;
+			import framework.model.VideoInfo;
+			
+			import mx.controls.VideoDisplay;
+			import mx.events.FlexEvent;
+			
+			import org.xzper.ApplicationFacade;
+			protected function application1_creationCompleteHandler(event:FlexEvent):void
+			{
+				systemManager.stage.align = StageAlign.TOP_LEFT;
+				systemManager.stage.scaleMode = StageScaleMode.NO_SCALE;
+				ApplicationFacade.getInstance().sendNotification(ApplicationFacade.STARTUP , this);
+				
+//				var nc:NetConnection = new NetConnection();
+//				nc.connect(null);
+//				var nsClient:Object=new Object();
+//				nsClient.onMetaData=function onMetaData(o:Object):void
+//				{
+//				}
+//				var ns:NetStream = new NetStream(nc);
+//				ns.client = nsClient;
+//				var video:Video = new Video(1280,720);
+//				video.attachNetStream(ns);
+//				ns.play("http://edge.v.iask.com/90314872.hlv?KID=sina,viask&Expires=1397923200&ssig=1vchwuFJIr");
+//				var ui:UIComponent = new UIComponent();
+//				ui.addChild(video);
+//				this.addElement(ui);
+				
+				DomLoader.loadXML("http://v.iask.com/v_play.php?vid=82566040",function(data:XML):void{
+					var videoInfo:VideoInfo = parse(data);
+					vp.source = parse(data);
+				});
+//				vp.source = "http://edge.v.iask.com/90314872.hlv?KID=sina,viask&Expires=1397923200&ssig=1vchwuFJIr";
+				
+//				var videoDisplay:VideoDisplay = new VideoDisplay();
+//				videoDisplay.autoPlay = false;
+//				videoDisplay.source = "http://edge.v.iask.com/90314872.hlv?KID=sina,viask&Expires=1397923200&ssig=1vchwuFJIr";
+//				this.addElement(videoDisplay);
+				
+				var timer:Timer = new Timer(100);
+				timer.addEventListener(TimerEvent.TIMER , timerEvent);
+				timer.start();
+			}
+			
+			protected function timerEvent(event:TimerEvent):void
+			{
+				totalTime.text = vp.currentTime.toString();
+			}
+			
+			private function parse(data:XML):VideoInfo
+			{
+				var videoInfo:VideoInfo = new VideoInfo();
+				videoInfo.timelength = uint(data["timelength"].toString());
+				var parts:Array = [];
+				for each(var itm:XML in data.descendants('durl'))
+				{
+					parts.push({url:itm.url.toString(), length:parseInt(itm.length)});
+				}
+				videoInfo.parts = parts;
+				return videoInfo;
+			}
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				vp.seek(355);
+			}
+			
+			protected function vp_stateChangeHandler(event:framework.event.VideoEvent):void
+			{
+				trace(event.state);
+			}
+			
+		]]>
+	</fx:Script>
+	<components:VideoPlayer id="vp" width="800" height="450" stateChange="vp_stateChangeHandler(event)"/>
+	<s:HSlider id="slider" x="88" y="488" width="592" minimum="0"/>
+	<s:Label id="totalTime" x="688" y="488" width="68" height="21"/>
+	<s:Button x="136" y="522" label="按钮" click="button1_clickHandler(event)"/>
+</s:Application>
